@@ -1,21 +1,23 @@
-function escalar(V0,num)//El primer parametro es un arreglo de coordenadas cartecianas el segundo, el porcentaje que se agranda o disminuye 
-{
-const arreglo1 = [1, 2];
-const arreglo2 = [3, 4];
-
-const suma = arreglo1.map((num, index) => num * arreglo2[index]);
-
-console.log(escala); // Resultado: [4, 6]
+function escalar(V0, porcentaje) {
+    // Convertir el porcentaje a un factor de escala
+    const factor = 1 + (porcentaje / 100);
+    
+    // Escalar cada coordenada en el arreglo V0
+    const resultado = V0.map(coord => coord * factor);
+    
+    return resultado;
 }
 
-function traslacion(V0,V1)//Los dos parametros son un arreglo de coordenadas cartecianas
-{
-const arreglo1 = [1, 2];
-const arreglo2 = [3, 4];
+function trasladar(coordenadas, nuevaPosicion) {
+    // Asegurarse de que ambos arreglos tengan la misma longitud
+    if (coordenadas.length !== nuevaPosicion.length) {
+        throw new Error("Los arreglos deben tener la misma longitud.");
+    }
 
-const suma = arreglo1.map((num, index) => num + arreglo2[index]);
-
-console.log(suma); // Resultado: [4, 6]
+    // Trasladar cada coordenada sumando las correspondientes
+    const resultado = coordenadas.map((coord, index) => coord + nuevaPosicion[index]);
+    
+    return resultado;
 }
 
 function conARec(x, y) {
@@ -39,5 +41,3 @@ function convertirACartesianas(arreglo1, angulo) {
 
     return { x: x.toFixed(2), y: y.toFixed(2) }; // Devolver un objeto con las coordenadas cartesianas
 }
-
-
