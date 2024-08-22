@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor de Canvas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            text-align: center;
+        }
+        #controls {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        canvas {
+            border: 1px solid black;
+            display: block;
+            margin: 0 auto;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    
+    <h1>Creador y transformador de poligonos regulares simples </h1>
+    
+    <div id="controls">
+        <div>
+            <label for="sides">Número de lados:</label>
+            <input type="number" id="sides" min="3" value="3">
+        </div>
+        <div>
+            <label for="size">Tamaño del lado:</label>
+            <input type="number" id="size" min="20" value="50">
+        </div>
+        <div>
+            <label for="transformation">Transformación:</label>
+            <select id="transformation">
+                <option value="none">Ninguna</option>
+                <option value="translate">Traslación</option>
+                <option value="rotate">Rotación</option>
+                <option value="scale">Escalado</option>
+            </select>
+        </div>
+        <div id="translationInputs" class="hidden">
+            <label for="translateX">Coordenada X:</label>
+            <input type="number" id="translateX" value="0">
+            <label for="translateY">Coordenada Y:</label>
+            <input type="number" id="translateY" value="0">
+        </div>
+        <div id="rotationInput" class="hidden">
+            <label for="rotateAngle">Ángulo en grados:</label>
+            <input type="number" id="rotateAngle" value="0" min="0" max="360">
+        </div>
+        <div id="scaleInput" class="hidden">
+            <label for="scalePercentage">Porcentaje de escalado:</label>
+            <input type="number" id="scalePercentage" value="100" min="1">
+        </div>
+        <div>
+            <button id="create">Crear</button>
+            <button id="clear">Eliminar</button>
+        </div>
+    </div>
+    
+    <canvas id="canvas" width="800" height="600"></canvas>
+    
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const sidesInput = document.getElementById('sides');
+        const sizeInput = document.getElementById('size');
+        const transformationSelect = document.getElementById('transformation');
+        const translateXInput = document.getElementById('translateX');
+        const translateYInput = document.getElementById('translateY');
+        const rotateAngleInput = document.getElementById('rotateAngle');
+        const scalePercentageInput = document.getElementById('scalePercentage');
+        const createButton = document.getElementById('create');
+        const clearButton = document.getElementById('clear');
+
+        // Función para dibujar un polígono
+        function drawPolygon(x, y, sides, size, color) {
+            const angle = (2 * Math.PI) / sides;
+            ctx.beginPath();
+            for (let i = 0; i < sides; i++) {
+                const xPos = x + size * Math.cos(i * angle);
+                const yPos = y + size * Math.sin(i * angle);
+                ctx.lineTo(xPos, yPos);
+            }
+            ctx.closePath();
+            ctx.stroke();
+            ctx.fillStyle = color; // Cambiar el color según el parámetro
+            ctx.fill();
+        }
+
+        // Manejar el botón de crear
+        createButton.addEventListener('click', () => {
+            const sides = parseInt(sidesInput.value);
+            const size = parseInt(sizeInput.value);
+            const x = canvas.width / 2;
+            const y = canvas.height / 2;
+
+            // Limpiar el canvas antes de dibujar
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawPolygon(x, y, sides, size, 'rgba(0, 100, 255, 0.3)'); // Dibuja la figura original en azul
+
+            // Aplicar transformaciones
+            applyTransformation(x, y, sides, size);
+        });
+
+        // Función para aplicar la transformación seleccionada
+        function applyTransformation(originalX, originalY, sides, size) {
+            const transformation = transformationSelect.value;
+
+            // Guardar el estado del contexto antes de aplicar transformaciones
+            ctx.save();
+
+            if (transformation === 'translate') {
+                const translateX = parseInt(translateXInput.value);
+                const translateY = parseInt(translateYInput.value);
+                ctx.translate(translateX, translateY);
+            } else if (transformation === 'rotate') {
+                const angleInDegrees = parseFloat(rotateAngleInput.value);
+                const angleInRadians = angleInDegrees * (Math.PI / 180); // Convertir a radianes
+                ctx.translate(originalX, originalY); // Mover el origen al centro de la figura
+                ctx.rotate(angleInRadians);
+                ctx.translate(-originalX, -originalY); // Regresar el origen
+            } else if (transformation === 'scale') {
+                const scalePercentage = parseInt(scalePercentageInput.value) / 100;
+                ctx.translate(originalX, originalY); // Mover el origen al centro de la figura
+                ctx.scale(scalePercentage, scalePercentage);
+                ctx.translate(-originalX, -originalY); // Regresar el origen
+            }
+
+            // Dibuja la figura transformada en amarillo
+            drawPolygon(originalX, originalY, sides, size, 'rgba(255, 255, 0, 0.5)'); // Dibuja la figura transformada en amarillo
+
+            // Restaurar el contexto a su estado original
+            ctx.restore();
+        }
+
+        // Mostrar/ocultar campos según la transformación seleccionada
+        transformationSelect.addEventListener('change', () => {
+            const selectedTransformation = transformationSelect.value;
+            document.getElementById('translationInputs').classList.toggle('hidden', selectedTransformation !== 'translate');
+            document.getElementById('rotationInput').classList.toggle('hidden', selectedTransformation !== 'rotate');
+            document.getElementById('scaleInput').classList.toggle('hidden', selectedTransformation !== 'scale');
+        });
+
+        // Manejar el botón de limpiar
+        clearButton.addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // Restablecer valores a sus estados iniciales
+            sidesInput.value = 3;
+            sizeInput.value = 50;
+            translateXInput.value = 0;
+            translateYInput.value = 0;
+            rotateAngleInput.value = 0;
+            scalePercentageInput.value = 100;
+            transformationSelect.value = 'none'; // Restablecer la transformación a "Ninguna"
+        });
+    </script>
+</body>
+</html>
+
